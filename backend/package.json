@@ -1,0 +1,32 @@
+{
+  "name": "k8viewer",
+  "version": "1.0.0",
+  "description": "Simple UI for administrating a Kubernetes cluster",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app",
+    "dev": "nodemon app",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ragulan77/k8viewer.git"
+  },
+  "keywords": [
+    "kubernetes",
+    "cluster"
+  ],
+  "author": "Ragulan CHARLES MAHENDRAN",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ragulan77/k8viewer/issues"
+  },
+  "homepage": "https://github.com/ragulan77/k8viewer#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "kubernetes-client": "^8.3.6"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}
