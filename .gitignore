@@ -1,0 +1,32 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+
+### FRONTEND GIT IGNORE
+# dependencies
+./frontend/k8v/node_modules
+./frontend/k8v/.pnp
+./frontend/k8v/.pnp.js
+
+# testing
+./frontend/k8v/coverage
+
+# production
+./frontend/k8v/build
+
+# misc
+./frontend/k8v/.DS_Store
+./frontend/k8v/.env.local
+./frontend/k8v/.env.development.local
+./frontend/k8v/.env.test.local
+./frontend/k8v/.env.production.local
+
+./frontend/k8v/npm-debug.log*
+./frontend/k8v/yarn-debug.log*
+./frontend/k8v/yarn-error.log*
+
+
+### BACKEND GIT IGNORE
+
+./backend/node_modules
+
+
