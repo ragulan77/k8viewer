@@ -10,7 +10,9 @@ import {
   Navbar,
   NavbarDivider,
   NavbarGroup,
-  NavbarHeading
+  NavbarHeading,
+  Dialog,
+  HTMLTable
 } from "@blueprintjs/core";
 
 const Backendk8v = require("../services/backendk8v");
@@ -65,7 +67,11 @@ class App extends React.Component {
       this.graphData.nodes = nodes;
       this.graphData.links = links;
 
-      this.setState({ graphData: this.graphData });
+      this.setState({
+        graphData: this.graphData,
+        nodeDialogOpen: false,
+        selectedPod: null
+      });
     });
   }
 
@@ -85,21 +91,76 @@ class App extends React.Component {
               />
             </NavbarGroup>
           </Navbar>
-
           <Graph
             id="graph-id" // id is mandatory, if no id is defined rd3g will throw an error
             data={this.state.graphData}
             config={this.myConfig}
-            onClickNode={this.onClickNode}
+            onDoubleClickNode={this.onDoubleClickNode}
             onRightClickNode={this.onRightClickNode}
             onClickGraph={this.onClickGraph}
           />
+
+          {this.state.selectedPod && (
+            <Dialog
+              icon="info-sign"
+              onClose={this.handleClose}
+              title="Palantir Foundry"
+              isOpen={this.state.nodeDialogOpen}
+            >
+              <HTMLTable>
+                <tbody>
+                  <tr>
+                    <th>Pod Name</th>
+                    <td>{this.state.selectedPod.metadata.name}</td>
+                  </tr>
+                  <tr>
+                    <th>Application name</th>
+                    <td>{this.state.selectedPod.metadata.labels.app}</td>
+                  </tr>
+                  <tr>
+                    <th>Namespace</th>
+                    <td>{this.state.selectedPod.metadata.namespace}</td>
+                  </tr>
+                  <tr>
+                    <th>UID</th>
+                    <td>{this.state.selectedPod.metadata.uid}</td>
+                  </tr>
+                  <tr>
+                    <th>Node name</th>
+                    <td>{this.state.selectedPod.spec.nodeName}</td>
+                  </tr>
+                  <tr>
+                    <th>Restart policy</th>
+                    <td>{this.state.selectedPod.spec.restartPolicy}</td>
+                  </tr>
+                  <tr>
+                    <th>Status</th>
+                    <td>{this.state.selectedPod.status.phase}</td>
+                  </tr>
+                  <tr>
+                    <th>Host IP</th>
+                    <td>{this.state.selectedPod.status.hostIP}</td>
+                  </tr>
+                  <tr>
+                    <th>Pod IP</th>
+                    <td>{this.state.selectedPod.status.podIP}</td>
+                  </tr>
+                  <tr>
+                    <th>Start time</th>
+                    <td>{this.state.selectedPod.status.startTime}</td>
+                  </tr>
+                </tbody>
+              </HTMLTable>
+            </Dialog>
+          )}
         </>
       );
     }
 
     return null;
   }
+
+  handleClose = () => this.setState({ nodeDialogOpen: false });
 
   // graph event callbacks
   onClickGraph() {
@@ -111,13 +172,15 @@ class App extends React.Component {
     backendk8v.getNodes();
   }
 
-  onDoubleClickNode(nodeId) {
-    window.alert(`Double clicked node ${nodeId}`);
-  }
+  onDoubleClickNode = nodeId => {
+    const currentNode = this.getNodeFromArrayById(nodeId);
+    console.log(JSON.stringify(currentNode));
+    this.setState({ nodeDialogOpen: true, selectedPod: currentNode.payload });
+  };
 
-  onRightClickNode(event, nodeId) {
+  onRightClickNode = (event, nodeId) => {
     window.alert(`Right clicked node ${nodeId}`);
-  }
+  };
 
   onMouseOverNode(nodeId) {
     window.alert(`Mouse over node ${nodeId}`);
@@ -185,6 +248,12 @@ class App extends React.Component {
     this.svgByPod.set(podAppName, svgUrl);
     return svgUrl;
   }
+
+  getNodeFromArrayById = nodeId => {
+    return this.state.graphData.nodes.find(node => {
+      return node.id === nodeId;
+    });
+  };
 }
 
 export default App;
