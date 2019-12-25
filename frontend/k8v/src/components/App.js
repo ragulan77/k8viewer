@@ -3,6 +3,16 @@ import "./App.css";
 
 import { Graph } from "react-d3-graph";
 
+import {
+  Alignment,
+  Button,
+  Classes,
+  Navbar,
+  NavbarDivider,
+  NavbarGroup,
+  NavbarHeading
+} from "@blueprintjs/core";
+
 const Backendk8v = require("../services/backendk8v");
 const backendk8v = new Backendk8v({});
 
@@ -11,6 +21,8 @@ class App extends React.Component {
     super();
     this.myConfig = {
       nodeHighlightBehavior: true,
+      width: 1900,
+      height: 800,
       node: {
         color: "lightgreen",
         size: 800,
@@ -60,7 +72,20 @@ class App extends React.Component {
   render() {
     if (this.state != null) {
       return (
-        <div className="App">
+        <>
+          <Navbar className="bp3-dark">
+            <NavbarGroup align={Alignment.LEFT}>
+              <NavbarHeading>Blueprint</NavbarHeading>
+              <NavbarDivider />
+              <Button className={Classes.MINIMAL} icon="home" text="Home" />
+              <Button
+                className={Classes.MINIMAL}
+                icon="document"
+                text="Files"
+              />
+            </NavbarGroup>
+          </Navbar>
+
           <Graph
             id="graph-id" // id is mandatory, if no id is defined rd3g will throw an error
             data={this.state.graphData}
@@ -69,7 +94,7 @@ class App extends React.Component {
             onRightClickNode={this.onRightClickNode}
             onClickGraph={this.onClickGraph}
           />
-        </div>
+        </>
       );
     }
 
