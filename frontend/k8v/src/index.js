@@ -4,6 +4,11 @@ import "./index.css";
 import App from "./components/App";
 import * as serviceWorker from "./serviceWorker";
 
+// blueprintjs CSS
+import "@blueprintjs/core/lib/css/blueprint.css";
+import "@blueprintjs/core/lib/css/blueprint.css";
+import "normalize.css/normalize.css";
+
 ReactDOM.render(<App />, document.getElementById("root"));
 
 // If you want your app to work offline and load faster, you can change
