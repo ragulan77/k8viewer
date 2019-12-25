@@ -10,6 +10,7 @@ const client = new Client({ version: "1.13" });
 
 app.get("/", (req, res) => {
   client.api.v1.namespaces.get().then(kres => {
+    res.header("Access-Control-Allow-Origin", "*");
     res.send(kres);
   });
 });
@@ -20,6 +21,7 @@ app.get("/getPods", (req, res) => {
     .pods()
     .get()
     .then(kres => {
+      res.header("Access-Control-Allow-Origin", "*");
       res.send(kres);
     });
 });
@@ -29,12 +31,14 @@ app.get("/getNodes", (req, res) => {
     .nodes()
     .get()
     .then(kres => {
+      res.header("Access-Control-Allow-Origin", "*");
       res.send(kres);
     });
 });
 
 app.get("/getDeployments", (req, res) => {
   client.apis.apps.v1.deployments.get().then(kres => {
+    res.header("Access-Control-Allow-Origin", "*");
     res.send(kres);
   });
 });
