@@ -1,4 +1,4 @@
-import { Dialog, HTMLTable, Classes } from "@blueprintjs/core";
+import { Dialog, HTMLTable, Classes, Button } from "@blueprintjs/core";
 import React from "react";
 
 const PodInfoDialog = props => {
@@ -54,8 +54,7 @@ const PodInfoDialog = props => {
             </tr>
           </tbody>
         </HTMLTable>
-      </div>
-      <div className={Classes.DIALOG_FOOTER}>
+
         <HTMLTable>
           <thead>
             <tr>
@@ -72,6 +71,19 @@ const PodInfoDialog = props => {
             ))}
           </tbody>
         </HTMLTable>
+      </div>
+      <div className={Classes.DIALOG_FOOTER}>
+        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
+          <Button icon="trash" intent="danger">
+            delete pod
+          </Button>
+          <Button icon="edit" intent="success">
+            edit replicas
+          </Button>
+          <Button icon="cross" intent="primary" onClick={props.onClose}>
+            close
+          </Button>
+        </div>
       </div>
     </Dialog>
   );
