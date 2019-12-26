@@ -101,9 +101,10 @@ class App extends React.Component {
           />
           {this.state.selectedPod && (
             <PodDialog
-              pod={this.state.selectedPod}
+              data={this.state.selectedPod}
               isOpen={this.state.isPodInfoDialogOpen}
               onClose={this.handlePodInfoDialogClose}
+              onConfirmEdit={this.handlePodReplicasEdit}
             />
           )}
         </>
@@ -112,6 +113,10 @@ class App extends React.Component {
 
     return null;
   }
+
+  handlePodReplicasEdit = () => {
+    //TODO
+  };
 
   handlePodInfoDialogClose = () => {
     this.setState({ isPodInfoDialogOpen: false });
@@ -153,9 +158,11 @@ class App extends React.Component {
 
     const pods = backendk8v.getPods();
     const knodes = backendk8v.getNodes();
-    await Promise.all([pods, knodes]).then(values => {
+    const deployments = backendk8v.getDeployments();
+    await Promise.all([pods, knodes, deployments]).then(values => {
       const pods = backendk8v.extractPods(values[0]);
       const knodes = backendk8v.extractNodes(values[1]);
+      const deployments = backendk8v.extractNodes(values[2]);
 
       knodes.forEach(node => {
         const id = backendk8v.getUID(node);
@@ -170,7 +177,11 @@ class App extends React.Component {
         //set node
         const id = backendk8v.getUID(pod);
         const kind = "pod";
-        const payload = pod;
+        const deployment = backendk8v.getDeploymentByApp(
+          deployments,
+          backendk8v.getPodAppName(pod)
+        );
+        const payload = { pod, deployment };
         const name = backendk8v.getPodName(pod);
         const svg = this.pickSvgUrlForPod(pod);
         nodes.push({ id, kind, payload, name, svg });
