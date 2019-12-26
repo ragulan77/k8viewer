@@ -63,7 +63,14 @@ const PodInfoDialog = props => {
               <th>Image</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody>
+            {props.pod.spec.containers.map(c => (
+              <tr>
+                <td>{c.name}</td>
+                <td>{c.image}</td>
+              </tr>
+            ))}
+          </tbody>
         </HTMLTable>
       </div>
     </Dialog>
