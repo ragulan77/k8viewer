@@ -10,10 +10,10 @@ import {
   Navbar,
   NavbarDivider,
   NavbarGroup,
-  NavbarHeading,
-  Dialog,
-  HTMLTable
+  NavbarHeading
 } from "@blueprintjs/core";
+
+import PodInfoDialog from "./podInfoDialog";
 
 const Backendk8v = require("../services/backendk8v");
 const backendk8v = new Backendk8v({});
@@ -69,8 +69,8 @@ class App extends React.Component {
 
       this.setState({
         graphData: this.graphData,
-        podDialogOpen: false,
-        selectedPod: null
+        selectedPod: null,
+        isPodInfoDialogOpen: false
       });
     });
   }
@@ -99,79 +99,12 @@ class App extends React.Component {
             onRightClickNode={this.onRightClickNode}
             onClickGraph={this.onClickGraph}
           />
-
           {this.state.selectedPod && (
-            <Dialog
-              icon="info-sign"
-              onClose={this.handleClose}
-              title="Pod Information"
-              isOpen={this.state.podDialogOpen}
-            >
-              <div className={Classes.DIALOG_BODY}>
-                <HTMLTable condensed="true">
-                  <tbody>
-                    <tr>
-                      <th>Pod Name</th>
-                      <td>{this.state.selectedPod.metadata.name}</td>
-                    </tr>
-                    <tr>
-                      <th>Application name</th>
-                      <td>{this.state.selectedPod.metadata.labels.app}</td>
-                    </tr>
-                    <tr>
-                      <th>Namespace</th>
-                      <td>{this.state.selectedPod.metadata.namespace}</td>
-                    </tr>
-                    <tr>
-                      <th>UID</th>
-                      <td>{this.state.selectedPod.metadata.uid}</td>
-                    </tr>
-                    <tr>
-                      <th>Node name</th>
-                      <td>{this.state.selectedPod.spec.nodeName}</td>
-                    </tr>
-                    <tr>
-                      <th>Restart policy</th>
-                      <td>{this.state.selectedPod.spec.restartPolicy}</td>
-                    </tr>
-                    <tr>
-                      <th>Status</th>
-                      <td>{this.state.selectedPod.status.phase}</td>
-                    </tr>
-                    <tr>
-                      <th>Host IP</th>
-                      <td>{this.state.selectedPod.status.hostIP}</td>
-                    </tr>
-                    <tr>
-                      <th>Pod IP</th>
-                      <td>{this.state.selectedPod.status.podIP}</td>
-                    </tr>
-                    <tr>
-                      <th>Start time</th>
-                      <td>{this.state.selectedPod.status.startTime}</td>
-                    </tr>
-                  </tbody>
-                </HTMLTable>
-              </div>
-              <div className={Classes.DIALOG_FOOTER}>
-                <HTMLTable>
-                  <thead>
-                    <tr>
-                      <th>Docker container name</th>
-                      <th>Image</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {this.state.selectedPod.spec.containers.map(c => (
-                      <tr>
-                        <td>{c.name}</td>
-                        <td>{c.image}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </HTMLTable>
-              </div>
-            </Dialog>
+            <PodInfoDialog
+              pod={this.state.selectedPod}
+              isOpen={this.state.isPodInfoDialogOpen}
+              onClose={this.handlePodInfoDialogClose}
+            />
           )}
         </>
       );
@@ -180,7 +113,9 @@ class App extends React.Component {
     return null;
   }
 
-  handleClose = () => this.setState({ podDialogOpen: false });
+  handlePodInfoDialogClose = () => {
+    this.setState({ isPodInfoDialogOpen: false });
+  };
 
   // graph event callbacks
   onClickGraph() {
@@ -194,8 +129,10 @@ class App extends React.Component {
 
   onDoubleClickNode = nodeId => {
     const currentNode = this.getNodeFromArrayById(nodeId);
-    console.log(JSON.stringify(currentNode));
-    this.setState({ podDialogOpen: true, selectedPod: currentNode.payload });
+    this.setState({
+      selectedPod: currentNode.payload,
+      isPodInfoDialogOpen: true
+    });
   };
 
   onRightClickNode = (event, nodeId) => {
@@ -247,11 +184,8 @@ class App extends React.Component {
         const nodeIdOfPod = backendk8v.getUID(nodeOfPod);
         links.push({ source: nodeIdOfPod, target: id });
       });
-
-      console.log("initialize fin promise all");
     });
 
-    console.log("return initialize");
     return { nodes, links };
   }
 
