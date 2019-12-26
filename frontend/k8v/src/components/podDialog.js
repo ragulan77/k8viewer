@@ -1,7 +1,7 @@
 import { Dialog, HTMLTable, Classes, Button } from "@blueprintjs/core";
 import React from "react";
 
-const PodInfoDialog = props => {
+const PodDialog = props => {
   return (
     <Dialog
       icon="info-sign"
@@ -89,4 +89,4 @@ const PodInfoDialog = props => {
   );
 };
 
-export default PodInfoDialog;
+export default PodDialog;

@@ -13,7 +13,7 @@ import {
   NavbarHeading
 } from "@blueprintjs/core";
 
-import PodInfoDialog from "./podInfoDialog";
+import PodDialog from "./podDialog";
 
 const Backendk8v = require("../services/backendk8v");
 const backendk8v = new Backendk8v({});
@@ -100,7 +100,7 @@ class App extends React.Component {
             onClickGraph={this.onClickGraph}
           />
           {this.state.selectedPod && (
-            <PodInfoDialog
+            <PodDialog
               pod={this.state.selectedPod}
               isOpen={this.state.isPodInfoDialogOpen}
               onClose={this.handlePodInfoDialogClose}
