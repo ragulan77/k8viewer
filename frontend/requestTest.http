@@ -1,0 +1,7 @@
+PATCH http://localhost:5000/updateDeploymentReplicas
+Content-Type: application/json
+
+{
+    "replicas": 10,
+    "deploymentName": "hello-minikube4"
+}
