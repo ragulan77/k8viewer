@@ -10,10 +10,12 @@ import {
   Navbar,
   NavbarDivider,
   NavbarGroup,
-  NavbarHeading
+  NavbarHeading,
+  Intent
 } from "@blueprintjs/core";
 
 import PodDialog from "./podDialog";
+import { MyToaster } from "./toaster";
 
 const Backendk8v = require("../services/backendk8v");
 const backendk8v = new Backendk8v({});
@@ -122,6 +124,21 @@ class App extends React.Component {
       .updateDeploymentReplicas(this.state.selectedPod.deployment, nbReplicas)
       .then(res => {
         console.log("handlePodReplicasEdit - deployName :" + deploymentName);
+        MyToaster.show({
+          message: "Replicas updated for the deployment " + deploymentName,
+          icon: "tick",
+          intent: Intent.SUCCESS
+        });
+        this.handlePodInfoDialogClose();
+      })
+      .catch(error => {
+        MyToaster.show({
+          message:
+            "Something wrong happened during the Replicas update for the deployment " +
+            deploymentName,
+          icon: "warning-sign",
+          intent: Intent.DANGER
+        });
       });
   };
 
