@@ -2,6 +2,16 @@
 const express = require("express");
 const app = express();
 
+const bodyParser = require("body-parser");
+
+app.use(
+  bodyParser.urlencoded({
+    extended: true
+  })
+);
+
+app.use(bodyParser.json());
+
 //k8s client constants
 const Client = require("kubernetes-client").Client;
 const config = require("kubernetes-client/backends/request").config;
@@ -15,7 +25,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.get("/getPods", (req, res) => {
+app.get("/pods", (req, res) => {
   client.api.v1
     .namespaces("default")
     .pods()
@@ -26,7 +36,7 @@ app.get("/getPods", (req, res) => {
     });
 });
 
-app.get("/getNodes", (req, res) => {
+app.get("/nodes", (req, res) => {
   client.api.v1
     .nodes()
     .get()
@@ -36,11 +46,30 @@ app.get("/getNodes", (req, res) => {
     });
 });
 
-app.get("/getDeployments", (req, res) => {
+app.get("/deployments", (req, res) => {
   client.apis.apps.v1.deployments.get().then(kres => {
     res.header("Access-Control-Allow-Origin", "*");
     res.send(kres);
   });
+});
+
+app.patch("/deployments", (req, res) => {
+  const replicas = {
+    spec: {
+      replicas: req.body.replicas
+    }
+  };
+
+  const deploymentName = req.body.deploymentName;
+
+  client.apis.apps.v1
+    .namespaces("default")
+    .deployments(deploymentName)
+    .patch({ body: replicas })
+    .then(kres => {
+      res.header("Access-Control-Allow-Origin", "*");
+      res.send(kres);
+    });
 });
 
 app.listen(5000, () => {

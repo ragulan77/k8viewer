@@ -6,15 +6,15 @@ class Backendk8v {
   }
 
   getNodes() {
-    return axios.get(this.baseURL + "/getNodes");
+    return axios.get(this.baseURL + "/nodes");
   }
 
   getPods() {
-    return axios.get(this.baseURL + "/getPods");
+    return axios.get(this.baseURL + "/pods");
   }
 
   getDeployments() {
-    return axios.get(this.baseURL + "/getDeployments");
+    return axios.get(this.baseURL + "/deployments");
   }
 
   extractPods(pods) {
