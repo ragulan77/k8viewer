@@ -4,6 +4,16 @@ const app = express();
 
 const bodyParser = require("body-parser");
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, access-control-allow-origin"
+  );
+  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, PATCH");
+  next();
+});
+
 app.use(
   bodyParser.urlencoded({
     extended: true
@@ -20,7 +30,6 @@ const client = new Client({ version: "1.13" });
 
 app.get("/", (req, res) => {
   client.api.v1.namespaces.get().then(kres => {
-    res.header("Access-Control-Allow-Origin", "*");
     res.send(kres);
   });
 });
@@ -31,7 +40,6 @@ app.get("/pods", (req, res) => {
     .pods()
     .get()
     .then(kres => {
-      res.header("Access-Control-Allow-Origin", "*");
       res.send(kres);
     });
 });
@@ -41,22 +49,21 @@ app.get("/nodes", (req, res) => {
     .nodes()
     .get()
     .then(kres => {
-      res.header("Access-Control-Allow-Origin", "*");
       res.send(kres);
     });
 });
 
 app.get("/deployments", (req, res) => {
   client.apis.apps.v1.deployments.get().then(kres => {
-    res.header("Access-Control-Allow-Origin", "*");
     res.send(kres);
   });
 });
 
+//for the moment it support only replicas changement on deployment
 app.patch("/deployments", (req, res) => {
   const replicas = {
     spec: {
-      replicas: req.body.replicas
+      replicas: parseInt(req.body.replicas)
     }
   };
 
@@ -67,7 +74,6 @@ app.patch("/deployments", (req, res) => {
     .deployments(deploymentName)
     .patch({ body: replicas })
     .then(kres => {
-      res.header("Access-Control-Allow-Origin", "*");
       res.send(kres);
     });
 });
