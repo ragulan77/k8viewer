@@ -114,8 +114,15 @@ class App extends React.Component {
     return null;
   }
 
-  handlePodReplicasEdit = () => {
+  handlePodReplicasEdit = nbReplicas => {
     //TODO
+    const deploymentName = this.state.selectedPod.deployment.metadata.name;
+
+    backendk8v
+      .updateDeploymentReplicas(this.state.selectedPod.deployment, nbReplicas)
+      .then(res => {
+        console.log("handlePodReplicasEdit - deployName :" + deploymentName);
+      });
   };
 
   handlePodInfoDialogClose = () => {

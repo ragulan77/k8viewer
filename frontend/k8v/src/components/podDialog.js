@@ -160,7 +160,7 @@ class PodReplicas extends React.Component {
             <Button
               icon="edit"
               intent="success"
-              onClick={this.props.onConfirmEdit}
+              onClick={() => this.props.onConfirmEdit(this.state.nbReplicas)}
             >
               confirmer
             </Button>

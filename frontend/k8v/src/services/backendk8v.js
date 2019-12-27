@@ -55,6 +55,13 @@ class Backendk8v {
     return node.metadata.name;
   }
 
+  updateDeploymentReplicas(deployment, replicas) {
+    const deploymentName = deployment.metadata.name;
+    const data = { deploymentName, replicas };
+
+    return axios.patch(this.baseURL + "/deployments", data);
+  }
+
   /*
    * node, Deployment et Pod possèdent un UID au même endroit
    *
