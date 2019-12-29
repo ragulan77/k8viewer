@@ -16,7 +16,7 @@ app.use(function(req, res, next) {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, access-control-allow-origin"
   );
-  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, PATCH");
+  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, PATCH, DELETE");
   next();
 });
 
@@ -56,6 +56,19 @@ app.get("/nodes", (req, res) => {
     .get()
     .then(kres => {
       res.send(kres);
+    });
+});
+
+app.delete("/pods", (req, res) => {
+  client.api.v1
+    .namespaces("default")
+    .pods(req.body.name)
+    .delete()
+    .then(kres => {
+      res.send(kres);
+    })
+    .catch(error => {
+      res.send(error);
     });
 });
 
