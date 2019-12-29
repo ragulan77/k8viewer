@@ -25,7 +25,7 @@ const backendk8v = new Backendk8v({});
 class App extends React.Component {
   constructor() {
     super();
-    this.myConfig = {
+    const myConfig = {
       nodeHighlightBehavior: true,
       width: 1900,
       height: 800,
@@ -41,9 +41,16 @@ class App extends React.Component {
       }
     };
 
-    this.graphData = {
+    var graphData = {
       nodes: [],
       links: []
+    };
+
+    this.state = {
+      graphData: graphData,
+      selectedPod: null,
+      isPodInfoDialogOpen: false,
+      myConfig: myConfig
     };
 
     this.nodeColors = [
@@ -67,15 +74,7 @@ class App extends React.Component {
     // graph payload
     this.initializeGraphData().then(result => {
       var { nodes, links } = result;
-
-      this.graphData.nodes = nodes;
-      this.graphData.links = links;
-
-      this.setState({
-        graphData: this.graphData,
-        selectedPod: null,
-        isPodInfoDialogOpen: false
-      });
+      this.setState({ graphData: { nodes: nodes, links: links } });
     });
 
     const socket = socketIOClient("http://localhost:5000");
@@ -83,7 +82,7 @@ class App extends React.Component {
   }
 
   render() {
-    if (this.state != null) {
+    if (this.state.graphData.nodes.length > 0) {
       return (
         <>
           <Navbar className="bp3-dark">
@@ -101,7 +100,7 @@ class App extends React.Component {
           <Graph
             id="graph-id" // id is mandatory, if no id is defined rd3g will throw an error
             data={this.state.graphData}
-            config={this.myConfig}
+            config={this.state.myConfig}
             onDoubleClickNode={this.onDoubleClickNode}
             onRightClickNode={this.onRightClickNode}
             onClickGraph={this.onClickGraph}
@@ -118,7 +117,7 @@ class App extends React.Component {
       );
     }
 
-    return null;
+    return <p>waiting</p>;
   }
 
   handlePodReplicasEdit = nbReplicas => {
