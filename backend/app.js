@@ -1,8 +1,14 @@
 //express constants
 const express = require("express");
+const http = require("http");
 const app = express();
+const server = http.createServer(app);
+
+const socketIo = require("socket.io");
+const io = socketIo(server); // < Interesting!
 
 const bodyParser = require("body-parser");
+const JSONStream = require("json-stream");
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
@@ -78,6 +84,36 @@ app.patch("/deployments", (req, res) => {
     });
 });
 
-app.listen(5000, () => {
+let interval;
+io.on("connection", socket => {
+  console.log("New client connected");
+  if (interval) {
+    clearInterval(interval);
+  }
+  interval = setInterval(() => getPodUpdateAndEmit(socket), 10000);
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+  });
+});
+
+const getPodUpdateAndEmit = async socket => {
+  try {
+    const stream = client.api.v1.watch.pods.getStream();
+    const jsonStream = new JSONStream();
+    stream.pipe(jsonStream);
+    jsonStream.on("data", object => {
+      //console.log("Event: ", JSON.stringify(object, null, 2));
+      //if (object.type == "DELETED") {
+      //console.log("Event: ", object);
+      socket.emit("FromAPI", object); // Emitting a new message which will be consumed by the client
+      //}
+      //console.log(objectJson.type);
+    });
+  } catch (error) {
+    console.error(`Error: ${error.code}`);
+  }
+};
+
+server.listen(5000, () => {
   console.log("Application listening on port 5000");
 });

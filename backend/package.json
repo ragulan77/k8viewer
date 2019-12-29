@@ -24,7 +24,8 @@
   "homepage": "https://github.com/ragulan77/k8viewer#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "kubernetes-client": "^8.3.6"
+    "kubernetes-client": "^8.3.6",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.2"

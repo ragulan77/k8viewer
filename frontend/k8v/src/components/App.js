@@ -1,4 +1,6 @@
 import React from "react";
+import socketIOClient from "socket.io-client";
+
 import "./App.css";
 
 import { Graph } from "react-d3-graph";
@@ -75,6 +77,9 @@ class App extends React.Component {
         isPodInfoDialogOpen: false
       });
     });
+
+    const socket = socketIOClient("http://localhost:5000");
+    socket.on("FromAPI", data => console.log(JSON.stringify(data)));
   }
 
   render() {
