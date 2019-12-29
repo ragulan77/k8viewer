@@ -81,13 +81,52 @@ class App extends React.Component {
       if (data.type === "ADDED") {
         this.addNodeFromEvent(data);
       } else if (data.type === "DELETED") {
-        console.log("new delete event");
         this.deleteNodeFromEvent(data);
       }
     });
   }
 
-  addNodeFromEvent() {}
+  addNodeFromEvent(eventData) {
+    //if the status of the new pod is not running, don't put it in our graph
+    //another event would come if the new pod is ready in the kubernetes cluster
+    if (eventData.object.status.phase !== "Running") return;
+    if (this.getPodIndex(eventData.object.metadata.uid) !== -1) return;
+
+    const podToAddName = eventData.object.metadata.name;
+    backendk8v.getPod(podToAddName).then(res => {
+      var nodes = [...this.state.graphData.nodes];
+      var links = [...this.state.graphData.links];
+
+      if (res.data.statusCode === 200) {
+        const pod = res.data.body;
+        //set node
+        const id = backendk8v.getUID(pod);
+        const kind = "pod";
+        // the deployment of a pod is always the app name
+        backendk8v
+          .getDeployment(backendk8v.getPodAppName(pod))
+          .then(deploymentData => {
+            const deployment = deploymentData.data.body;
+            console.log("new deployment : ", deployment);
+            const payload = { pod, deployment };
+            const name = backendk8v.getPodName(pod);
+            const svg = this.pickSvgUrlForPod(pod);
+            nodes.push({ id, kind, payload, name, svg });
+
+            //set link
+            const podNodeName = backendk8v.getPodNodeName(pod);
+            const nodeOfPod = nodes.find(node => {
+              return backendk8v.getNodeName(node.payload) === podNodeName;
+            });
+
+            const nodeIdOfPod = backendk8v.getUID(nodeOfPod.payload);
+            links.push({ source: nodeIdOfPod, target: id });
+
+            this.setState({ graphData: { nodes, links } });
+          });
+      }
+    });
+  }
 
   deleteNodeFromEvent(eventData) {
     const podToDeleteName = eventData.object.metadata.name;
@@ -162,15 +201,14 @@ class App extends React.Component {
   }
 
   handlePodDelete = () => {
-    console.log("going to delete pod 1 ");
     const podToDelete = this.state.selectedPod.pod;
     const nameOfPodToDelete = backendk8v.getPodName(podToDelete);
+
     backendk8v
       .deletePod(nameOfPodToDelete)
       .then(res => {
-        console.log("going to delete pod 2 ");
         this.deletePod(nameOfPodToDelete);
-        toasterSuccessMsg("Pod successfully deleted : ", nameOfPodToDelete);
+        toasterSuccessMsg("Pod successfully deleted : " + nameOfPodToDelete);
         this.handlePodInfoDialogClose();
       })
       .catch(error => {
@@ -302,6 +340,16 @@ class App extends React.Component {
       return node.id === nodeId;
     });
   };
+
+  // get the index of the node with the UID in array
+  getPodIndex(uid) {
+    return this.state.graphData.nodes.findIndex(node => {
+      if (node.kind === "pod") {
+        return backendk8v.getUID(node.payload.pod) === uid;
+      }
+      return false;
+    });
+  }
 }
 
 export default App;
