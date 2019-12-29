@@ -272,7 +272,7 @@ class App extends React.Component {
         const kind = "node";
         const payload = node;
         const name = backendk8v.getNodeName(node);
-        const svg = "images/kubernetes-icons/master-node.svg";
+        const svg = "images/kubernetes-icons/worker-node.svg";
         nodes.push({ id, kind, payload, name, svg });
       });
 
