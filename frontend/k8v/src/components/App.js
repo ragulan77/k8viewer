@@ -7,8 +7,6 @@ import { Graph } from "react-d3-graph";
 
 import {
   Alignment,
-  Button,
-  Classes,
   Navbar,
   NavbarDivider,
   NavbarGroup,
@@ -16,7 +14,7 @@ import {
 } from "@blueprintjs/core";
 
 import PodDialog from "./podDialog";
-import { toasterErrorMsg, toasterSuccessMsg } from "./toaster";
+import { toasterErrorMsg, toasterSuccessMsg, toasterInfoMsg } from "./toaster";
 
 const Backendk8v = require("../services/backendk8v");
 const backendk8v = new Backendk8v({});
@@ -31,7 +29,7 @@ class App extends React.Component {
       node: {
         color: "lightgreen",
         size: 800,
-        fontSize: 18,
+        fontSize: 14,
         highlightStrokeColor: "blue",
         labelProperty: "name"
       },
@@ -107,7 +105,6 @@ class App extends React.Component {
           .getDeployment(backendk8v.getPodAppName(pod))
           .then(deploymentData => {
             const deployment = deploymentData.data.body;
-            console.log("new deployment : ", deployment);
             const payload = { pod, deployment };
             const name = backendk8v.getPodName(pod);
             const svg = this.pickSvgUrlForPod(pod);
@@ -121,7 +118,7 @@ class App extends React.Component {
 
             const nodeIdOfPod = backendk8v.getUID(nodeOfPod.payload);
             links.push({ source: nodeIdOfPod, target: id });
-
+            //toasterInfoMsg("New pod added : " + name);
             this.setState({ graphData: { nodes, links } });
           });
       }
@@ -166,14 +163,9 @@ class App extends React.Component {
         <>
           <Navbar className="bp3-dark">
             <NavbarGroup align={Alignment.LEFT}>
-              <NavbarHeading>Blueprint</NavbarHeading>
+              <NavbarHeading>K8Viewer</NavbarHeading>
               <NavbarDivider />
-              <Button className={Classes.MINIMAL} icon="home" text="Home" />
-              <Button
-                className={Classes.MINIMAL}
-                icon="document"
-                text="Files"
-              />
+              <NavbarHeading>By Ragulan</NavbarHeading>
             </NavbarGroup>
           </Navbar>
           <Graph
@@ -182,7 +174,6 @@ class App extends React.Component {
             config={this.state.myConfig}
             onDoubleClickNode={this.onDoubleClickNode}
             onRightClickNode={this.onRightClickNode}
-            onClickGraph={this.onClickGraph}
           />
           {this.state.selectedPod && (
             <PodDialog
@@ -242,16 +233,6 @@ class App extends React.Component {
   handlePodInfoDialogClose = () => {
     this.setState({ isPodInfoDialogOpen: false });
   };
-
-  // graph event callbacks
-  onClickGraph() {
-    window.alert(`Clicked the graph background`);
-  }
-
-  onClickNode(nodeId) {
-    window.alert(`Clicked node ${nodeId}`);
-    backendk8v.getNodes();
-  }
 
   onDoubleClickNode = nodeId => {
     const currentNode = this.getNodeFromArrayById(nodeId);
