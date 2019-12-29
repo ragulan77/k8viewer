@@ -78,7 +78,41 @@ class App extends React.Component {
     });
 
     const socket = socketIOClient("http://localhost:5000");
-    socket.on("FromAPI", data => console.log(JSON.stringify(data)));
+    socket.on("FromAPI", data => {
+      if (data.type === "ADDED") {
+        this.addNodeFromEvent(data);
+      } else if (data.type === "DELETED") {
+        this.deleteNodeFromEvent(data);
+      }
+    });
+  }
+
+  addNodeFromEvent() {}
+
+  deleteNodeFromEvent(eventData) {
+    const podToDeleteName = eventData.object.metadata.name;
+    var nodes = [...this.state.graphData.nodes];
+    var links = [...this.state.graphData.links];
+
+    const podToDeleteIndex = nodes.findIndex(node => {
+      if (node.kind === "pod") {
+        return backendk8v.getPodName(node.payload.pod) === podToDeleteName;
+      }
+    });
+
+    //we found a pod to delete in our Graph
+    if (podToDeleteIndex !== -1) {
+      //we need to find the link to delete too
+      const linkToDeleteIndex = links.findIndex(link => {
+        return (
+          link.target === backendk8v.getUID(nodes[podToDeleteIndex].payload.pod)
+        );
+      });
+
+      nodes.splice(podToDeleteIndex, 1);
+      links.splice(linkToDeleteIndex, 1);
+      this.setState({ graphData: { nodes, links } });
+    }
   }
 
   render() {
