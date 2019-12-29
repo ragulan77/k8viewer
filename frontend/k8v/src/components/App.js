@@ -30,6 +30,7 @@ class App extends React.Component {
         color: "lightgreen",
         size: 800,
         fontSize: 14,
+        highlightFontSize: 16,
         highlightStrokeColor: "blue",
         labelProperty: "name"
       },
