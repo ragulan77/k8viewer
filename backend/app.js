@@ -50,6 +50,20 @@ app.get("/pods", (req, res) => {
     });
 });
 
+app.get("/pods/:name", (req, res) => {
+  const podName = req.params.name;
+  client.api.v1
+    .namespaces("default")
+    .pods(podName)
+    .get()
+    .then(kres => {
+      res.send(kres);
+    })
+    .catch(e => {
+      res.send(e);
+    });
+});
+
 app.get("/nodes", (req, res) => {
   client.api.v1
     .nodes()
@@ -59,10 +73,11 @@ app.get("/nodes", (req, res) => {
     });
 });
 
-app.delete("/pods", (req, res) => {
+app.delete("/pods/:name", (req, res) => {
+  const podName = req.params.name;
   client.api.v1
     .namespaces("default")
-    .pods(req.body.name)
+    .pods(podName)
     .delete()
     .then(kres => {
       res.send(kres);
@@ -76,6 +91,17 @@ app.get("/deployments", (req, res) => {
   client.apis.apps.v1.deployments.get().then(kres => {
     res.send(kres);
   });
+});
+
+app.get("/deployments/:name", (req, res) => {
+  const name = req.params.name;
+  client.apis.apps.v1
+    .namespace("default")
+    .deployments(name)
+    .get()
+    .then(kres => {
+      res.send(kres);
+    });
 });
 
 //for the moment it support only replicas changement on deployment
@@ -114,11 +140,11 @@ const getPodUpdateAndEmit = async socket => {
     const stream = client.api.v1.watch.pods.getStream();
     const jsonStream = new JSONStream();
     stream.pipe(jsonStream);
-    jsonStream.on("data", object => {
+    jsonStream.on("data", event => {
       //console.log("Event: ", JSON.stringify(object, null, 2));
       //if (object.type == "DELETED") {
       //console.log("Event: ", object);
-      socket.emit("FromAPI", object); // Emitting a new message which will be consumed by the client
+      if (event.object.kind === "Pod") socket.emit("FromAPI", event); // Emitting a new message which will be consumed by the client
       //}
       //console.log(objectJson.type);
     });

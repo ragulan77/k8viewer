@@ -13,8 +13,16 @@ class Backendk8v {
     return axios.get(this.baseURL + "/pods");
   }
 
+  getPod(name) {
+    return axios.get(this.baseURL + "/pods/" + name);
+  }
+
   getDeployments() {
     return axios.get(this.baseURL + "/deployments");
+  }
+
+  getDeployment(name) {
+    return axios.get(this.baseURL + "/deployments/" + name);
   }
 
   extractPods(pods) {
@@ -63,8 +71,7 @@ class Backendk8v {
   }
 
   deletePod(podName) {
-    const data = { name: podName };
-    return axios.delete(this.baseURL + "/pods", data);
+    return axios.delete(this.baseURL + "/pods/" + podName);
   }
 
   /*
