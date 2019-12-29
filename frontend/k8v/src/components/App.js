@@ -12,12 +12,11 @@ import {
   Navbar,
   NavbarDivider,
   NavbarGroup,
-  NavbarHeading,
-  Intent
+  NavbarHeading
 } from "@blueprintjs/core";
 
 import PodDialog from "./podDialog";
-import { MyToaster } from "./toaster";
+import { toasterErrorMsg, toasterSuccessMsg } from "./toaster";
 
 const Backendk8v = require("../services/backendk8v");
 const backendk8v = new Backendk8v({});
@@ -82,6 +81,7 @@ class App extends React.Component {
       if (data.type === "ADDED") {
         this.addNodeFromEvent(data);
       } else if (data.type === "DELETED") {
+        console.log("new delete event");
         this.deleteNodeFromEvent(data);
       }
     });
@@ -91,6 +91,11 @@ class App extends React.Component {
 
   deleteNodeFromEvent(eventData) {
     const podToDeleteName = eventData.object.metadata.name;
+    this.deletePod(podToDeleteName);
+  }
+
+  deletePod(podName) {
+    const podToDeleteName = podName;
     var nodes = [...this.state.graphData.nodes];
     var links = [...this.state.graphData.links];
 
@@ -98,6 +103,7 @@ class App extends React.Component {
       if (node.kind === "pod") {
         return backendk8v.getPodName(node.payload.pod) === podToDeleteName;
       }
+      return false;
     });
 
     //we found a pod to delete in our Graph
@@ -145,6 +151,7 @@ class App extends React.Component {
               isOpen={this.state.isPodInfoDialogOpen}
               onClose={this.handlePodInfoDialogClose}
               onConfirmEdit={this.handlePodReplicasEdit}
+              onDelete={this.handlePodDelete}
             />
           )}
         </>
@@ -154,6 +161,26 @@ class App extends React.Component {
     return <p>waiting</p>;
   }
 
+  handlePodDelete = () => {
+    console.log("going to delete pod 1 ");
+    const podToDelete = this.state.selectedPod.pod;
+    const nameOfPodToDelete = backendk8v.getPodName(podToDelete);
+    backendk8v
+      .deletePod(nameOfPodToDelete)
+      .then(res => {
+        console.log("going to delete pod 2 ");
+        this.deletePod(nameOfPodToDelete);
+        toasterSuccessMsg("Pod successfully deleted : ", nameOfPodToDelete);
+        this.handlePodInfoDialogClose();
+      })
+      .catch(error => {
+        toasterErrorMsg(
+          "An error happened during the deletion of pod ",
+          nameOfPodToDelete
+        );
+      });
+  };
+
   handlePodReplicasEdit = nbReplicas => {
     //TODO
     const deploymentName = this.state.selectedPod.deployment.metadata.name;
@@ -161,22 +188,16 @@ class App extends React.Component {
     backendk8v
       .updateDeploymentReplicas(this.state.selectedPod.deployment, nbReplicas)
       .then(res => {
-        console.log("handlePodReplicasEdit - deployName :" + deploymentName);
-        MyToaster.show({
-          message: "Replicas updated for the deployment " + deploymentName,
-          icon: "tick",
-          intent: Intent.SUCCESS
-        });
+        toasterSuccessMsg(
+          "Replicas updated for the deployment " + deploymentName
+        );
         this.handlePodInfoDialogClose();
       })
       .catch(error => {
-        MyToaster.show({
-          message:
-            "Something wrong happened during the Replicas update for the deployment " +
-            deploymentName,
-          icon: "warning-sign",
-          intent: Intent.DANGER
-        });
+        toasterErrorMsg(
+          "Something wrong happened during the Replicas update for the deployment " +
+            deploymentName
+        );
       });
   };
 

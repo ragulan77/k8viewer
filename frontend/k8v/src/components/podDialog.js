@@ -119,7 +119,7 @@ const PodInfo = props => {
       </div>
       <div className={Classes.DIALOG_FOOTER}>
         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-          <Button icon="trash" intent="danger">
+          <Button icon="trash" intent="danger" onClick={props.onDelete}>
             delete pod
           </Button>
           <Button icon="cross" intent="primary" onClick={props.onClose}>

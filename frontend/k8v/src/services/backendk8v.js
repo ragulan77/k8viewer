@@ -62,6 +62,11 @@ class Backendk8v {
     return axios.patch(this.baseURL + "/deployments", data);
   }
 
+  deletePod(podName) {
+    const data = { name: podName };
+    return axios.delete(this.baseURL + "/pods", data);
+  }
+
   /*
    * node, Deployment et Pod possèdent un UID au même endroit
    *
