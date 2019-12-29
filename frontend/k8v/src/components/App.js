@@ -237,10 +237,12 @@ class App extends React.Component {
 
   onDoubleClickNode = nodeId => {
     const currentNode = this.getNodeFromArrayById(nodeId);
-    this.setState({
-      selectedPod: currentNode.payload,
-      isPodInfoDialogOpen: true
-    });
+    if (currentNode.kind === "pod") {
+      this.setState({
+        selectedPod: currentNode.payload,
+        isPodInfoDialogOpen: true
+      });
+    }
   };
 
   onRightClickNode = (event, nodeId) => {
