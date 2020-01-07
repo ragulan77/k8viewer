@@ -41,7 +41,8 @@ class App extends React.Component {
 
     var graphData = {
       nodes: [],
-      links: []
+      links: [],
+      deployments: []
     };
 
     this.state = {
@@ -71,8 +72,8 @@ class App extends React.Component {
   componentDidMount() {
     // graph payload
     this.initializeGraphData().then(result => {
-      var { nodes, links } = result;
-      this.setState({ graphData: { nodes: nodes, links: links } });
+      var { nodes, links, deployments } = result;
+      this.setState({ graphData: { nodes, links, deployments } });
     });
 
     const socket = socketIOClient("http://localhost:5000");
@@ -95,6 +96,7 @@ class App extends React.Component {
     backendk8v.getPod(podToAddName).then(res => {
       var nodes = [...this.state.graphData.nodes];
       var links = [...this.state.graphData.links];
+      var deployments = [...this.state.graphData.deployments];
 
       if (res.data.statusCode === 200) {
         const pod = res.data.body;
@@ -106,7 +108,15 @@ class App extends React.Component {
           .getDeployment(backendk8v.getPodAppName(pod))
           .then(deploymentData => {
             const deployment = deploymentData.data.body;
-            const payload = { pod, deployment };
+            const deployIndex = deployments.findIndex(
+              d => d.metadata.name === deployment.metadata.name
+            );
+            if (deployIndex !== -1) {
+              deployments[deployIndex].metadata.replicas =
+                deployment.metadata.replicas;
+            }
+
+            const payload = { pod, deployment: deployments[deployIndex] };
             const name = backendk8v.getPodName(pod);
             const svg = this.pickSvgUrlForPod(pod);
             nodes.push({ id, kind, payload, name, svg });
@@ -120,7 +130,7 @@ class App extends React.Component {
             const nodeIdOfPod = backendk8v.getUID(nodeOfPod.payload);
             links.push({ source: nodeIdOfPod, target: id });
             //toasterInfoMsg("New pod added : " + name);
-            this.setState({ graphData: { nodes, links } });
+            this.setState({ graphData: { nodes, links, deployments } });
           });
       }
     });
@@ -135,6 +145,7 @@ class App extends React.Component {
     const podToDeleteName = podName;
     var nodes = [...this.state.graphData.nodes];
     var links = [...this.state.graphData.links];
+    var deployments = [...this.state.graphData.deployments];
 
     const podToDeleteIndex = nodes.findIndex(node => {
       if (node.kind === "pod") {
@@ -154,7 +165,7 @@ class App extends React.Component {
 
       nodes.splice(podToDeleteIndex, 1);
       links.splice(linkToDeleteIndex, 1);
-      this.setState({ graphData: { nodes, links } });
+      this.setState({ graphData: { nodes, links, deployments } });
     }
   }
 
@@ -212,7 +223,6 @@ class App extends React.Component {
   };
 
   handlePodReplicasEdit = nbReplicas => {
-    //TODO
     const deploymentName = this.state.selectedPod.deployment.metadata.name;
 
     backendk8v
@@ -221,6 +231,10 @@ class App extends React.Component {
         toasterSuccessMsg(
           "Replicas updated for the deployment " + deploymentName
         );
+
+        var editedPod = this.state.selectedPod;
+        editedPod.deployment.spec.replicas = nbReplicas;
+        this.setState({ selectedPod: editedPod });
         this.handlePodInfoDialogClose();
       })
       .catch(error => {
@@ -260,14 +274,15 @@ class App extends React.Component {
   async initializeGraphData() {
     var nodes = [];
     var links = [];
+    var deployments = [];
 
     const pods = backendk8v.getPods();
     const knodes = backendk8v.getNodes();
-    const deployments = backendk8v.getDeployments();
-    await Promise.all([pods, knodes, deployments]).then(values => {
+    const kdeployments = backendk8v.getDeployments();
+    await Promise.all([pods, knodes, kdeployments]).then(values => {
       const pods = backendk8v.extractPods(values[0]);
       const knodes = backendk8v.extractNodes(values[1]);
-      const deployments = backendk8v.extractNodes(values[2]);
+      deployments = backendk8v.extractNodes(values[2]);
 
       knodes.forEach(node => {
         const id = backendk8v.getUID(node);
@@ -302,7 +317,7 @@ class App extends React.Component {
       });
     });
 
-    return { nodes, links };
+    return { nodes, links, deployments };
   }
 
   pickSvgUrlForPod(pod) {
