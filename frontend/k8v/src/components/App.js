@@ -227,7 +227,7 @@ class App extends React.Component {
             <NavbarGroup align={Alignment.LEFT}>
               <NavbarHeading>K8Viewer</NavbarHeading>
               <NavbarDivider />
-              <NavbarHeading>By Ragulan</NavbarHeading>
+              <NavbarHeading>Your Kubernetes Cluster</NavbarHeading>
             </NavbarGroup>
           </Navbar>
           <Graph
