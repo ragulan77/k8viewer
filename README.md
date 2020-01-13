@@ -13,6 +13,9 @@ Voici une démonstration du projet : https://youtu.be/hn8hVXnPRzw
 
 Sur cet exemple, il n'y a qu'un seul noeud Kubernetes, mais rien n'empêche d'en avoir plusieurs dans le cluster. 
 
+**Update 13/01/2020** : Désormais les Pods d’un même déploiement seront regroupés par un nœud commun. 
+![alt text](https://i.ibb.co/8200ysB/kubernetes-graph.jpg)
+
 ## TODO
 - [ ] Filtrer les Pods par applications
 - [ ] Ajouter un **autoscale** sur un déploiement avec un nombre min et max de Pod
