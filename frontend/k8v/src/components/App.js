@@ -23,12 +23,14 @@ class App extends React.Component {
   constructor() {
     super();
     const myConfig = {
+      directed: true,
+      linkHighlightBehavior: true,
       nodeHighlightBehavior: true,
       width: 1900,
       height: 800,
       node: {
         color: "lightgreen",
-        size: 800,
+        size: 600,
         fontSize: 14,
         highlightFontSize: 16,
         highlightStrokeColor: "blue",
@@ -36,13 +38,24 @@ class App extends React.Component {
       },
       link: {
         highlightColor: "lightblue"
+      },
+      d3: {
+        alphaTarget: 0.95,
+        gravity: -500,
+        linkLength: 100,
+        linkStrength: 2
       }
     };
+
+    /*
+    knodesApp = [{id, knodeId, appName}]
+    */
 
     var graphData = {
       nodes: [],
       links: [],
-      deployments: []
+      deployments: [],
+      knodesApp: []
     };
 
     this.state = {
@@ -72,8 +85,8 @@ class App extends React.Component {
   componentDidMount() {
     // graph payload
     this.initializeGraphData().then(result => {
-      var { nodes, links, deployments } = result;
-      this.setState({ graphData: { nodes, links, deployments } });
+      var { nodes, links, deployments, knodesApp } = result;
+      this.setState({ graphData: { nodes, links, deployments, knodesApp } });
     });
 
     const socket = socketIOClient("http://localhost:5000");
@@ -97,6 +110,7 @@ class App extends React.Component {
       var nodes = [...this.state.graphData.nodes];
       var links = [...this.state.graphData.links];
       var deployments = [...this.state.graphData.deployments];
+      var knodesApp = [...this.state.graphData.knodesApp];
 
       if (res.data.statusCode === 200) {
         const pod = res.data.body;
@@ -104,34 +118,67 @@ class App extends React.Component {
         const id = backendk8v.getUID(pod);
         const kind = "pod";
         // the deployment of a pod is always the app name
-        backendk8v
-          .getDeployment(backendk8v.getPodAppName(pod))
-          .then(deploymentData => {
-            const deployment = deploymentData.data.body;
-            const deployIndex = deployments.findIndex(
-              d => d.metadata.name === deployment.metadata.name
+        const podAppName = backendk8v.getPodAppName(pod);
+        backendk8v.getDeployment(podAppName).then(deploymentData => {
+          const deployment = deploymentData.data.body;
+          const deployIndex = deployments.findIndex(
+            d => d.metadata.name === deployment.metadata.name
+          );
+          if (deployIndex !== -1) {
+            deployments[deployIndex].metadata.replicas =
+              deployment.metadata.replicas;
+          }
+
+          const depl =
+            deployIndex !== -1 ? deployments[deployIndex] : deployment;
+
+          const payload = { pod, deployment: depl };
+          const name = backendk8v.getPodName(pod);
+          const svg = this.pickSvgUrlForPod(pod);
+          nodes.push({ id, kind, payload, name, svg });
+
+          //set link
+          const podNodeName = backendk8v.getPodNodeName(pod);
+          const nodeOfPod = nodes.find(node => {
+            return backendk8v.getNodeName(node.payload) === podNodeName;
+          });
+
+          const nodeIdOfPod = backendk8v.getUID(nodeOfPod.payload);
+
+          var knodeApp = knodesApp.find(knodeApp => {
+            return (
+              knodeApp.knodeId === nodeIdOfPod &&
+              knodeApp.appName === podAppName
             );
-            if (deployIndex !== -1) {
-              deployments[deployIndex].metadata.replicas =
-                deployment.metadata.replicas;
-            }
+          });
 
-            const payload = { pod, deployment: deployments[deployIndex] };
-            const name = backendk8v.getPodName(pod);
-            const svg = this.pickSvgUrlForPod(pod);
-            nodes.push({ id, kind, payload, name, svg });
+          if (knodeApp === undefined) {
+            knodeApp = {
+              knodeId: nodeIdOfPod,
+              appName: podAppName,
+              id: nodeIdOfPod + podAppName
+            };
+            knodesApp.push(knodeApp);
 
-            //set link
-            const podNodeName = backendk8v.getPodNodeName(pod);
-            const nodeOfPod = nodes.find(node => {
-              return backendk8v.getNodeName(node.payload) === podNodeName;
+            nodes.push({
+              id: knodeApp.id,
+              kind: "knodeApp",
+              payload: knodeApp,
+              name: podAppName,
+              color: "black",
+              size: 150
             });
 
-            const nodeIdOfPod = backendk8v.getUID(nodeOfPod.payload);
-            links.push({ source: nodeIdOfPod, target: id });
-            //toasterInfoMsg("New pod added : " + name);
-            this.setState({ graphData: { nodes, links, deployments } });
+            links.push({ source: nodeIdOfPod, target: knodeApp.id });
+          }
+
+          links.push({ source: knodeApp.id, target: id });
+
+          //toasterInfoMsg("New pod added : " + name);
+          this.setState({
+            graphData: { nodes, links, deployments, knodesApp }
           });
+        });
       }
     });
   }
@@ -146,6 +193,7 @@ class App extends React.Component {
     var nodes = [...this.state.graphData.nodes];
     var links = [...this.state.graphData.links];
     var deployments = [...this.state.graphData.deployments];
+    var knodesApp = [...this.state.graphData.knodesApp];
 
     const podToDeleteIndex = nodes.findIndex(node => {
       if (node.kind === "pod") {
@@ -159,13 +207,15 @@ class App extends React.Component {
       //we need to find the link to delete too
       const linkToDeleteIndex = links.findIndex(link => {
         return (
-          link.target === backendk8v.getUID(nodes[podToDeleteIndex].payload.pod)
+          link.target ===
+            backendk8v.getUID(nodes[podToDeleteIndex].payload.pod) ||
+          link.source === backendk8v.getUID(nodes[podToDeleteIndex].payload.pod)
         );
       });
 
       nodes.splice(podToDeleteIndex, 1);
       links.splice(linkToDeleteIndex, 1);
-      this.setState({ graphData: { nodes, links, deployments } });
+      this.setState({ graphData: { nodes, links, deployments, knodesApp } });
     }
   }
 
@@ -275,6 +325,7 @@ class App extends React.Component {
     var nodes = [];
     var links = [];
     var deployments = [];
+    var knodesApp = [];
 
     const pods = backendk8v.getPods();
     const knodes = backendk8v.getNodes();
@@ -295,11 +346,12 @@ class App extends React.Component {
 
       pods.forEach(pod => {
         //set node
+        const podAppName = backendk8v.getPodAppName(pod);
         const id = backendk8v.getUID(pod);
         const kind = "pod";
         const deployment = backendk8v.getDeploymentByApp(
           deployments,
-          backendk8v.getPodAppName(pod)
+          podAppName
         );
         const payload = { pod, deployment };
         const name = backendk8v.getPodName(pod);
@@ -313,11 +365,38 @@ class App extends React.Component {
         });
 
         const nodeIdOfPod = backendk8v.getUID(nodeOfPod);
-        links.push({ source: nodeIdOfPod, target: id });
+
+        var knodeApp = knodesApp.find(knodeApp => {
+          return (
+            knodeApp.knodeId === nodeIdOfPod && knodeApp.appName === podAppName
+          );
+        });
+
+        if (knodeApp === undefined) {
+          knodeApp = {
+            knodeId: nodeIdOfPod,
+            appName: podAppName,
+            id: nodeIdOfPod + podAppName
+          };
+          knodesApp.push(knodeApp);
+
+          nodes.push({
+            id: knodeApp.id,
+            kind: "knodeApp",
+            payload: knodeApp,
+            name: podAppName,
+            color: "black",
+            size: 150
+          });
+
+          links.push({ source: nodeIdOfPod, target: knodeApp.id });
+        }
+
+        links.push({ source: knodeApp.id, target: id });
       });
     });
 
-    return { nodes, links, deployments };
+    return { nodes, links, deployments, knodesApp };
   }
 
   pickSvgUrlForPod(pod) {
