@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/ragulan77/k8viewer#readme",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "kubernetes-client": "^8.3.6",
     "socket.io": "^2.3.0"
   },
